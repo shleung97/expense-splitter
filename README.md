@@ -36,17 +36,6 @@ On a group trip or shared outing, different people pay for different bills, and 
 
 Expense Splitter records the payer and participants for each bill, divides its cost, and calculates each person's balance. Category reports help the group understand where its money went, while editing makes it possible to correct a bill without removing and entering it again.
 
-## Innovation
-
-Compared with manual calculations using spreadsheets or calculators, Expense Splitter:
-
-- Automatically calculates balances
-- Supports percentage-based expense splitting
-- Provides budget tracking
-- Generates reports
-- Stores and loads expense records
-- Provides both a console version and Windows GUI version
-
 ## What makes it different
 
 - **Exact to the cent.** All money is stored as whole cents, never floating point. When a bill cannot be divided exactly, the leftover cents go to the people whose shares were cut most by rounding (largest-remainder method), so the shares always add up to exactly the bill amount, even with uneven percentages.
@@ -241,41 +230,6 @@ $env:PATH = 'C:\msys64\ucrt64\bin;' + $env:PATH
 `appendExpense`, `replaceExpense`, and `eraseExpense` in `operations.cpp` are used by both interfaces. They validate mutations before changing the group. `matchesExpense` provides common search matching.
 
 Report functions return strings that the console prints or the GUI displays. When adding a new feature, keep reusable data operations outside console prompts and Win32 event handlers so both interfaces can use them.
-
-## Example Use Cases
-
-### Travel Group
-
-**Members:**
-- Alice
-- Bob
-- Charlie
-
-**Expenses:**
-- Alice paid $300 for hotel accommodation
-- Bob paid $150 for food
-- Charlie paid $150 for transportation
-
-**Calculation:**
-
-Total expenses = $600
-
-Each member's share = $600 ÷ 3 = $200
-
-**Result:**
-- Bob pays Alice $50
-- Charlie pays Alice $50
-
-### Student Project Team
-
-A project team can track shared expenses throughout a semester, such as:
-
-- Food and refreshments
-- Printing and stationery
-- Transportation costs
-- Event-related purchases
-
-The system automatically records expenses, calculates each member's share, and determines reimbursements required to settle all balances fairly.
 
 ### Run the checks
 
