@@ -1,6 +1,6 @@
 # Expense Splitter - C++ Group Expense Manager
 
-> Track shared bills, correct expenses, compare spending categories, and calculate who owes whom. Use the console interface or a native Windows GUI, with shared calculations and local save files.
+> Track shared bills, split them evenly or by percentage, keep an eye on a group budget, compare spending categories, and calculate who owes whom. Use the console interface or a native Windows GUI, with shared calculations and local save files.
 
 ## Quick start - Windows GUI
 
@@ -20,11 +20,13 @@ The GUI runs as a Windows application. GitHub hosts the source; it does not run 
 ## Table of contents
 
 1. [Motivation](#motivation)
-2. [Features and interfaces](#features-and-interfaces)
-3. [Usage guide](#usage-guide)
-4. [Developer guide](#developer-guide)
-5. [Save files and compatibility](#save-files-and-compatibility)
-6. [Limitations](#limitations)
+2. [What makes it different](#what-makes-it-different)
+3. [Example use cases](#example-use-cases)
+4. [Features and interfaces](#features-and-interfaces)
+5. [Usage guide](#usage-guide)
+6. [Developer guide](#developer-guide)
+7. [Save files and compatibility](#save-files-and-compatibility)
+8. [Limitations](#limitations)
 
 ---
 
@@ -34,6 +36,43 @@ On a group trip or shared outing, different people pay for different bills, and 
 
 Expense Splitter records the payer and participants for each bill, divides its cost, and calculates each person's balance. Category reports help the group understand where its money went, while editing makes it possible to correct a bill without removing and entering it again.
 
+## What makes it different
+
+- **Exact to the cent.** All money is stored as whole cents, never floating point. When a bill cannot be divided exactly, the leftover cents go to the people whose shares were cut most by rounding (largest-remainder method), so the shares always add up to exactly the bill amount, even with uneven percentages.
+- **Flexible splits.** Each bill can be split evenly among everyone, evenly among selected people, by a group's fixed percentages (e.g. a 40/30/30 rent agreement), or by custom percentages for that bill only.
+- **Settle up, not just balances.** Besides showing each person's net balance, the app suggests a short list of payments that clears all debts, matching the person owed the most with the person who owes the most.
+- **Budget tracking.** Set a group budget; the app shows how much is left after every bill and warns when the group goes over.
+- **One core, two interfaces.** Validation, splitting, reports, and storage live in shared C++ code (`operations`, `expense`, `report`, `storage`) used by both the console app and the Windows GUI, so both always calculate the same results.
+- **Safe save files.** Saves are versioned. Newer versions still load older files, and a file whose format is ambiguous or invalid is rejected instead of being loaded with a silently changed split.
+
+## Example use cases
+
+**1. Weekend trip with uneven participation.** Amy, Ben, and Cara set a 300.00 budget for a trip.
+
+| Bill | Paid by | Split |
+| --- | --- | --- |
+| Hotel 180.00 | Amy | Evenly between all three |
+| Dinner 60.00 | Ben | Custom: Amy 50%, Ben 25%, Cara 25% (Amy ordered the most) |
+| Taxi 30.00 | Cara | Only Amy and Ben rode |
+
+After each bill the app shows the budget left (120.00, 60.00, then 30.00). The balances and settle-up reports then show:
+
+```text
+  Name                Paid     Share       Net
+  Amy               180.00    105.00    +75.00
+  Ben                60.00     90.00    -30.00
+  Cara               30.00     75.00    -45.00
+
+  Cara pays Amy 45.00
+  Ben pays Amy 30.00
+```
+
+Two payments settle the whole trip.
+
+**2. Flatmates with a fixed rent split.** Set fixed percentages once (option **14**, e.g. 40/30/30 for rooms of different sizes). Each month, add rent with split mode **1. fixed %**; utilities can still be split evenly. Save the group and load it again next month.
+
+**3. Club or project spending report.** Tag each purchase with a category, then use **Category totals**, **Analytics**, and **Ranking** to show where the money went, for example for a treasurer's report.
+
 ## Features and interfaces
 
 | Feature | Console | Windows GUI |
@@ -41,12 +80,15 @@ Expense Splitter records the payer and participants for each bill, divides its c
 | Create a group | Enter member names at startup | Add people using the name field |
 | Add expenses | Guided prompts | Expense form |
 | Choose who shares a bill | Everyone or selected member numbers | Select names in the sharing list |
+| Percentage splits | Fixed group percentages or custom per-bill percentages | Not yet available |
+| Budget | Set at startup or option 15; shown after every bill | Not yet available |
 | List expenses | Numbered list | Selectable table |
 | Edit expenses | Option 12, with confirmation | Select a row, change values, and confirm |
 | Search | Description, payer, or exact day filter | Combined description, payer, and day text search |
 | Remove expenses | Select a bill number | Select a row and confirm removal |
 | Daily summaries, balances, settlements | Menu reports | Scrollable report windows |
 | Category totals, analytics, ranking | Options 9–11 | Category report buttons |
+| Set fixed percentages, adjust budget | Options 14–15 | Not yet available |
 | Save and load | Enter a file path | Windows file dialogs |
 
 Both interfaces use C++ code for expense operations, cent splitting, reports, and storage. The GUI uses Win32 controls and does not require Qt.
@@ -57,7 +99,7 @@ Both interfaces use C++ code for expense operations, cent splitting, reports, an
 
 In the GUI, type a member's name into **Person name** and click **Add person**. Repeat for the other members, or click **Load...** to open a saved group.
 
-In the console, choose whether to load a file at startup. For a new group, enter the number of people and their names.
+In the console, choose whether to load a file at startup. For a new group, enter the number of people and their names. You can then optionally set a budget and a fixed percentage split for the group.
 
 Adding a person in the GUI does not change the participants of existing expenses.
 
@@ -71,9 +113,15 @@ In the GUI:
 4. Choose a **Category**: Food, Transport, Accommodation, Entertainment, or Other. The default is Other.
 5. Click **Add expense**.
 
-In the console, choose **1. Add expense** and follow the prompts. Category selection comes after the amount; sharing selection follows it.
+In the console, choose **1. Add expense** and follow the prompts. Category selection comes after the amount, then choose how to split:
 
-Amounts are stored as whole cents. If a bill cannot be divided evenly, extra cents are assigned in the order of its stored participant list. For example, 10.01 shared by two people becomes 5.01 and 5.00.
+1. **Fixed %** - use the group's fixed percentages (set with option **14**). If none are set, the app falls back to an even split.
+2. **Even** - split equally among everyone or among the people you select.
+3. **Custom %** - enter a percentage for each person for this bill only.
+
+After adding, the console shows each person's share and, if a budget is set, how much is left.
+
+Amounts are stored as whole cents. If a bill cannot be divided exactly, the leftover cents go to the people with the largest rounding remainders, so the shares always add up to the bill. For example, 10.01 shared evenly by two people becomes 5.01 and 5.00.
 
 ### 3. Correct an existing bill
 
@@ -102,7 +150,12 @@ A positive net balance means the person should receive money; a negative balance
 
 GUI reports cover the whole group, regardless of the search filter. They are snapshots: reopen a report after changing expenses. Settlement suggestions do not record or execute payments.
 
-### 5. Save your work
+### 5. Set percentages and a budget (console)
+
+- **14. Set fixed percentages** shows the current percentages and lets you enter new ones for each person. Percentages are used as relative weights, so 50/25/25 and 2/1/1 give the same split.
+- **15. Adjust budget** adds to or subtracts from the budget, for example `+100` or `-50`. The budget line at the top of the menu shows the budget, spending so far, and how much is left, with a warning when the group is over budget.
+
+### 6. Save your work
 
 Use **Save...** and **Load...** in the GUI, or options **7** and **8** in the console. Both interfaces can read the same supported files.
 
@@ -123,6 +176,8 @@ expense-splitter/
 |   |-- group.h / .cpp        # Console group and expense interactions
 |   |-- input.h / .cpp        # Console input parsing and validation
 |   |-- operations.h / .cpp   # Shared mutations, validation, and search matching
+|   |-- percentage.h / .cpp   # Fixed and custom percentage splits
+|   |-- budget.h / .cpp       # Budget tracking and warnings
 |   |-- report.h / .cpp       # Shared report generation and console wrappers
 |   `-- storage.h / .cpp      # Versioned saves and compatible loading
 |-- tests/
@@ -182,7 +237,7 @@ With g++ on PATH, compile and run the existing checks:
 
 ```powershell
 New-Item -ItemType Directory -Force build | Out-Null
-g++ -std=c++11 -Wall -Wextra -Isrc tests/operations_test.cpp src/operations.cpp src/expense.cpp src/report.cpp src/storage.cpp src/input.cpp -o build/operations-test.exe
+g++ -std=c++11 -Wall -Wextra -Isrc tests/operations_test.cpp src/operations.cpp src/expense.cpp src/report.cpp src/storage.cpp src/input.cpp src/percentage.cpp -o build/operations-test.exe
 .\build\operations-test.exe build/test-roundtrip.txt
 ```
 
@@ -192,9 +247,10 @@ The checks cover expense validation, cent splitting, search matching, reports, a
 
 ## Save files and compatibility
 
-New files start with `EXPENSE_SPLITTER_V2`. They store member names and each bill's day, description, payer, amount in cents, category, and participants.
+New files start with `EXPENSE_SPLITTER_V3`. They store member names, the group's fixed percentages and budget, and each bill's day, description, payer, amount in cents, category, participants, and percentage weights.
 
-- Both updated interfaces read and write this format.
+- Both interfaces read and write this format.
+- Files from earlier versions (`EXPENSE_SPLITTER_V2`, `v2`, and unversioned files) still load. Missing budgets are treated as not set, and missing percentages as an even split.
 - Older unversioned files are accepted when their format can be identified unambiguously.
 - Bills loaded from files without categories receive **Other**.
 - Ambiguous or invalid files are rejected without replacing the current group.
@@ -206,7 +262,9 @@ Files are plain text and are stored locally. There is no cloud synchronization o
 
 - The GUI is Windows-only and has a fixed main-window layout.
 - Interface text is English. The GUI uses Windows system text encoding rather than full Unicode support, so text portability across different language settings is limited.
-- Expenses split equally among selected people; custom percentages and unequal shares are not supported.
+- Percentage splits and the budget can only be set in the console. The GUI keeps them when loading and saving a file, and its reports use the percentage splits, but it cannot set or change them yet.
+- Percentage splits always include every member of the group; to leave someone out of a percentage-split bill, give them 0%.
+- Settle-up suggests a short list of payments but does not guarantee the smallest possible number of payments in every case.
 - Days are numbers from 1 to 365, not calendar dates.
 - Editing supports amount, description, payer, and category; it does not change the day or participants.
 - There is no currency conversion, payment processing, or edit history.
