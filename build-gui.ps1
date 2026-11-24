@@ -9,7 +9,7 @@ if (-not (Test-Path -LiteralPath $Compiler)) {
 $env:PATH = (Split-Path -Parent $Compiler) + ';' + $env:PATH
 $output = Join-Path $PSScriptRoot 'build'
 New-Item -ItemType Directory -Force -Path $output | Out-Null
-$sources = @('gui\main.cpp', 'src\expense.cpp', 'src\input.cpp', 'src\storage.cpp', 'src\operations.cpp', 'src\report.cpp') |
+$sources = @('gui\main.cpp', 'src\expense.cpp', 'src\input.cpp', 'src\storage.cpp', 'src\operations.cpp', 'src\report.cpp', 'src\budget.cpp', 'src\percentage.cpp') |
     ForEach-Object { Join-Path $PSScriptRoot $_ }
 & $Compiler -std=c++11 -Wall -Wextra -I (Join-Path $PSScriptRoot 'src') $sources `
     -mwindows -static -lcomctl32 -lcomdlg32 -o (Join-Path $output $OutputName)
