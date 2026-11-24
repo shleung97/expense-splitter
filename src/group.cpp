@@ -170,7 +170,6 @@ void removeExpense(Group& g) {
 
     showBudgetLine(g);
 }
-}
 
 
 void editExpense(Group& g) {
