@@ -1,8 +1,8 @@
-# Expense Splitter — C++ Group Expense Manager
+# Expense Splitter - C++ Group Expense Manager
 
 > Track shared bills, correct expenses, compare spending categories, and calculate who owes whom. Use the console interface or a native Windows GUI, with shared calculations and local save files.
 
-## Quick start — Windows GUI
+## Quick start - Windows GUI
 
 From the project folder, with MSYS2 MinGW g++ installed:
 
