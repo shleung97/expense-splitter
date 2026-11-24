@@ -8,6 +8,8 @@ g++ -std=c++17 src/*.cpp -o expense-splitter
 
 Run:
 ./expense-splitter
+
+
 GUI Version (Windows)
 
 Build:
